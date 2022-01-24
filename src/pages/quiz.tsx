@@ -6,16 +6,23 @@ import produce from "immer"
 
 const host = 'https://quiz-de.herokuapp.com/', masterKey = 'lL0bepH9Pz7wbuOy8pkAM9X1pzkhJNCS';
 
+interface Question{
+  id: string,
+  questionType: string,
+  question: string,
+  options: Array<string>,
+  answer?: string
+}
 
 export function QuizPage({ navigation }: { navigation: any }) {
   const [isLoading, setLoading] = useState(true);
-  const [questions, setData] = useState([]);
+  const [questions, setQuestions] = useState([]);
 
   const getQuestions = async () => {
     try {
-      const response = await fetch(host + 'questions?access_token=' + masterKey);
+      const response = await fetch(`${host}questions?access_token=${masterKey}`);
       const json = await response.json();
-      setData(json.rows);
+      setQuestions(json.rows);
     } catch (error) {
       console.error(error);
     } finally {
@@ -26,7 +33,7 @@ export function QuizPage({ navigation }: { navigation: any }) {
   const submitResults = async () => {
     try {
       setLoading(true);
-      const response = await fetch(host + 'results', {
+      const response = await fetch(`${host}results`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -34,25 +41,17 @@ export function QuizPage({ navigation }: { navigation: any }) {
         },
         body: JSON.stringify({
           access_token: masterKey,
-          answers: questions.map((qn: any) => ({
+          answers: questions.map((qn: Question) => ({
             question: qn.id,
             answer: qn.answer
           }))
         })
       });
-      Alert.alert(
-        "Thanks",
-        "Your response has been recorded",
-        [
-          { text: "Go Home", onPress: () => navigation.navigate('Home') }
-        ]
-      );
       const json = await response.json();
       console.log(json);
+      navigation.navigate('Home');
     } catch (error) {
       console.error(error);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -60,17 +59,17 @@ export function QuizPage({ navigation }: { navigation: any }) {
     getQuestions();
   }, []);
 
-  function update(index: number, ans: String) {
-    const newQuestions = produce(questions, (state: any) => {
+  function update(index: number, ans: string) {
+    const newQuestions = produce(questions, (state: Array<Question>) => {
       state[index].answer = ans;
     })
-    setData(newQuestions);
+    setQuestions(newQuestions);
   }
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.questionsContainer}>
-        {questions.map((qn: any, ind) => {
+        {questions.map((qn: Question, ind) => {
           return (
             <View key={qn.id}>
               <Text style={styles.question}>
@@ -78,7 +77,7 @@ export function QuizPage({ navigation }: { navigation: any }) {
               </Text>
               {qn.questionType == 'obj' ?
                 <TextInput style={styles.textAnswer} onChangeText={(val) => update(ind, val)} value={qn.answer} />
-                : <RadioButton data={qn.options} onSelect={(val: any) => update(ind, val)} />}
+                : <RadioButton data={qn.options} onSelect={(val: string) => update(ind, val)} />}
             </View>
           );
         })}

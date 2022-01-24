@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 
-export default function RadioButton({ data, onSelect }) {
-  const [userOption, setUserOption] = useState(null);
-  const selectHandler = (value) => {
+export default function RadioButton({ data, onSelect }: {data: Array<string>, onSelect: (a: string) => void}) {
+  const [userOption, setUserOption] = useState('');
+  const selectHandler = (value: string) => {
     onSelect(value);
     setUserOption(value);
   };
   return (
     <View>
       {
-      data.map((item, i) => {
+      data.map((item: string, i:number) => {
         return (
           <Pressable key={item}
             style={
               item === userOption ? styles.selected : styles.unselected
             }
             onPress={() => selectHandler(item)}>
-            <Text style={styles.option}>{String.fromCharCode("A".charCodeAt(0) + i)+' : '+item}</Text>
+            <Text style={styles.option}>{`${String.fromCharCode(/*Char A*/65 + i)} : ${item}`}</Text>
           </Pressable>
         );
       })}
